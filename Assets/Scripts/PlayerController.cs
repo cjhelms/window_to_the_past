@@ -123,4 +123,6 @@ public class PlayerController : MonoBehaviour
         }
         else {dashing = false; moving = true;}
     }
+
+    public void ChangeActivePlayer (ref GameObject newActivePlayer) => activePlayer = newActivePlayer;
 }
