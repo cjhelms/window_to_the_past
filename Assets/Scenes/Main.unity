@@ -336,3 +336,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   activePlayer: {fileID: 159187165}
+  speed: 3
+  dashDis: 2
+  dashTime: 0.15
