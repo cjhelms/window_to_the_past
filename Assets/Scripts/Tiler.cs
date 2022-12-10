@@ -15,7 +15,7 @@ public class Tiler : MonoBehaviour
     private GameObject[] tiles = new GameObject[MaxTiles];
     private int depth;
 
-    void Initialize(ref GameObject level)
+    public void Initialize(ref GameObject level)
     {
         // Get a reference to the main camera
         cameraMain = GameObject.Find("CameraMain");
