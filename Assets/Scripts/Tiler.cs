@@ -15,14 +15,6 @@ public class Tiler : MonoBehaviour
     private GameObject[] tiles = new GameObject[MaxTiles];
     private int depth;
 
-    // TODO: Debugging, must be deleted when integrated with level manager
-    GameObject level;
-    void Start()
-    {
-        level = Instantiate(Resources.Load("Level_1")) as GameObject;
-        Initialize(ref level);
-    }
-
     void Initialize(ref GameObject level)
     {
         // Get a reference to the main camera
@@ -56,14 +48,14 @@ public class Tiler : MonoBehaviour
         // for each tile
         //   rewind
         // copy tile[depth-1] into tile[depth]
-        // transform.parent.ChangeActivePlayer(tiles[depth].transform.Find("Player").gameObject);
+        transform.parent.GetComponent<LevelManager>().ChangeActivePlayer(tiles[depth].transform.Find("Player").gameObject);
         return;
     }
 
     void Collapse()
     {
         DecreaseDepth();
-        // transform.parent.ChangeActivePlayer(tiles[depth].transform.Find("Player").gameObject);
+        transform.parent.GetComponent<LevelManager>().ChangeActivePlayer(tiles[depth].transform.Find("Player").gameObject);
         return;
     }
 

@@ -14,6 +14,6 @@ public class LevelManager : MonoBehaviour
         Instantiate(playerController, new Vector3(0, 0, 0), Quaternion.identity).transform.SetParent(gameObject.transform);
     }
 
-    public void ChangeActivePlayer (ref GameObject newActivePlayer)
-    { playerController.ChangeActivePlayer(ref newActivePlayer); }
+    public void ChangeActivePlayer (GameObject newActivePlayer)
+    { playerController.ChangeActivePlayer(newActivePlayer); }
 }
