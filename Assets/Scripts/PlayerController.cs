@@ -8,6 +8,7 @@ public class PlayerController : MonoBehaviour
 
     [Header ("Movement Variables")]
     //Movement
+    bool moving = true;
     Vector3 moveVector;
     bool rightInput;
     bool leftInput;
@@ -21,7 +22,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float speed;
 
     //Dash
-    bool dash = false;
+    bool dashing = false;
     float dashTimer;
     float dashStartX;
     float dashStartY;
@@ -34,7 +35,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         //Moving around
-        if (!dash)
+        if (moving)
         {
             //Listen for inputs
             if (Input.GetKey(KeyCode.RightArrow)) {rightInput = true;} else {rightInput = false;}
@@ -85,29 +86,35 @@ public class PlayerController : MonoBehaviour
         }
         
         //Dash input
-        if (Input.GetKeyDown(KeyCode.Space)) 
-        {
-            dash = true;
-
-            dashStartX = activePlayer.transform.position.x;
-            dashEnd.x = dashStartX + (moveVector.normalized.x * dashDis);
-            dashStartY = activePlayer.transform.position.y;
-            dashEnd.y = dashStartY + (moveVector.normalized.y * dashDis);
-            dashTimer = 0;
-        }
+        if (Input.GetKeyDown(KeyCode.Space)) { DashInitiated(); }
 
         //Dashing
-        if (dash)
-        {
-            if (dashTimer < dashTime)
-            {
-                dashX = Mathf.Lerp(dashStartX, dashEnd.x, dashTimer/dashTime);
-                dashY = Mathf.Lerp(dashStartY, dashEnd.y, dashTimer/dashTime);
-                dashTimer += Time.deltaTime;
+        if (dashing) { Dashing(); }
+    }
 
-                activePlayer.transform.position = new Vector3(dashX, dashY, 0);
-            }
-            else {dash = false;}
+    void DashInitiated ()
+    {
+        moving = false;
+        dashing = true;
+
+        //Setting numbers for dash
+        dashStartX = activePlayer.transform.position.x;
+        dashEnd.x = dashStartX + (moveVector.normalized.x * dashDis);
+        dashStartY = activePlayer.transform.position.y;
+        dashEnd.y = dashStartY + (moveVector.normalized.y * dashDis);
+        dashTimer = 0;
+    }
+
+    void Dashing ()
+    {
+        if (dashTimer < dashTime)
+        {
+            dashX = Mathf.Lerp(dashStartX, dashEnd.x, dashTimer/dashTime);
+            dashY = Mathf.Lerp(dashStartY, dashEnd.y, dashTimer/dashTime);
+            dashTimer += Time.deltaTime;
+
+            activePlayer.transform.position = new Vector3(dashX, dashY, 0);
         }
+        else {dashing = false; moving = true;}
     }
 }
