@@ -7,7 +7,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] GameObject activePlayer;
 
     Vector3 moveVector;
-    float speed = .01f;
+    float speed = 5f;
 
     void Update()
     {
@@ -21,6 +21,6 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.UpArrow))      {moveVector.y -= 1f;}
         if (Input.GetKeyUp(KeyCode.DownArrow))    {moveVector.y += 1f;}
 
-        activePlayer.transform.Translate(moveVector.normalized * speed);
+        activePlayer.transform.Translate(moveVector.normalized * speed * Time.deltaTime);
     }
 }
