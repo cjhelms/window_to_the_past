@@ -34,6 +34,12 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        // Handle case where activePlayer has not been set
+        if(activePlayer == null)
+        {
+            return;
+        }
+
         //Moving around
         if (moving)
         {

@@ -12,6 +12,7 @@ public class Tiler : MonoBehaviour
 
     private GameObject cameraMain;
     private GameObject[] cameras = new GameObject[MaxTiles];
+    private GameObject[] tiles = new GameObject[MaxTiles];
     private int depth;
 
     void Start()
@@ -21,15 +22,8 @@ public class Tiler : MonoBehaviour
 
         for(int i = 0; i < MaxTiles; i++)
         {
-            cameras[i] = new GameObject("cam" + i);
-            cameras[i].transform.parent = cameraMain.transform;
-            cameras[i].transform.position = cameraMain.transform.position;
-            Camera cam = cameras[i].AddComponent<Camera>() as Camera;
-            cam.orthographic = true;
-            cam.cullingMask = 1 << GetLayerMask(i) | 1;
-            cam.enabled = false;
-            cam.backgroundColor = new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f),
-                Random.Range(0.0f, 1.0f), 1);
+            cameras[i] = NewCamera(i);
+            tiles[i] = NewTile(i);
         }
 
         cameras[0].GetComponent<Camera>().enabled = true;
@@ -134,5 +128,40 @@ public class Tiler : MonoBehaviour
     private LayerMask GetLayerMask(int ndx)
     {
         return (LayerMask)(MaxLayerMask - ndx);
+    }
+
+    private Color RandomColor()
+    {
+        return new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f),
+            Random.Range(0.0f, 1.0f), 1);
+    }
+
+    private GameObject NewCamera(int ndx)
+    {
+        GameObject obj = new GameObject("Cam" + ndx);
+        obj.transform.parent = cameraMain.transform;
+        obj.transform.position = cameraMain.transform.position;
+        Camera cam = obj.AddComponent<Camera>() as Camera;
+        cam.orthographic = true;
+        cam.cullingMask = 1 << GetLayerMask(ndx) | 1;
+        cam.enabled = false;
+        cam.backgroundColor = RandomColor();
+        return obj;
+    }
+
+    private GameObject NewTile(int ndx)
+    {
+        GameObject obj = Instantiate(Resources.Load("Tile")) as GameObject;
+        obj.name = "Tile" + ndx;
+        obj.layer = GetLayerMask(ndx);
+        GameObject player = obj.transform.Find("Player").gameObject;
+        if(player == null)
+        {
+            Debug.Log("No player found!");
+            return obj;
+        }
+        player.GetComponent<SpriteRenderer>().color = RandomColor();
+        player.layer = GetLayerMask(ndx);
+        return obj;
     }
 }
