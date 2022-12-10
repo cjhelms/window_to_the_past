@@ -8,12 +8,12 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - TileMain
   - Water
   - UI
-  - 
-  - 
-  - 
+  - Tile1
+  - Tile2
+  - Tile3
   - 
   - 
   - 
