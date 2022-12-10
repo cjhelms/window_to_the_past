@@ -64,11 +64,11 @@ public class Tiler : MonoBehaviour
     {
         if(Input.GetKeyDown(KeyCode.Space))
         {
-            IncreaseDepth();
+            Flashback();
         }
         else if(Input.GetKeyDown(KeyCode.Backspace))
         {
-            DecreaseDepth();
+            Collapse();
         }
     }
 
