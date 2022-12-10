@@ -151,7 +151,7 @@ public class Tiler : MonoBehaviour
 
     private GameObject NewTile(int ndx)
     {
-        GameObject obj = Instantiate(Resources.Load("Tile")) as GameObject;
+        GameObject obj = Instantiate(Resources.Load("Level_1")) as GameObject;
         obj.name = "Tile" + ndx;
         obj.layer = GetLayerMask(ndx);
         GameObject player = obj.transform.Find("Player").gameObject;
