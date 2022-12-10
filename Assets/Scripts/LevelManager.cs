@@ -10,9 +10,11 @@ public class LevelManager : MonoBehaviour
 
     void Start()
     {
-        Instantiate(tiler, new Vector3(0, 0, 0), Quaternion.identity).transform.SetParent(gameObject.transform);
-        Instantiate(playerController, new Vector3(0, 0, 0), Quaternion.identity).transform.SetParent(gameObject.transform);
+        playerController = Instantiate(playerController, new Vector3(0, 0, 0), Quaternion.identity);
+        playerController.transform.SetParent(gameObject.transform);
 
+        tiler = Instantiate(tiler, new Vector3(0, 0, 0), Quaternion.identity);
+        tiler.transform.SetParent(gameObject.transform);
         tiler.Initialize(ref levels[0]);
     }
 
