@@ -9,7 +9,6 @@ public class LevelManager : MonoBehaviour
     [SerializeField] GameObject[] levels;
     int curLevel;
 
-    // Intended to be called only once at the very beginning of the game
     void Start()
     {
         // Make the persistent player controller, will persist for rest of the game
@@ -32,11 +31,27 @@ public class LevelManager : MonoBehaviour
         //Instantiate the prefab first!
         GameObject level = Instantiate(levels[curLevel], new Vector3(0, 0, 0), Quaternion.identity);
         tiler.Initialize(level);
+
+        Debug.Log("Started level " + (curLevel + 1));
     }
 
     // Notify the player controller that the active player has changed & who is now active
     public void ChangeActivePlayer (GameObject newActivePlayer)
     { 
         playerController.ChangeActivePlayer(newActivePlayer); 
+    }
+
+    // Rewind and start a new timeline
+    public void Flashback(float time)
+    {
+        Debug.Log("Forwarding flashback request to tiler");
+        tiler.Flashback(time);
+    }
+
+    // Collapse top timeline
+    public void Collapse()
+    {
+        Debug.Log("Forwarding collapse request to tiler");
+        tiler.Collapse();
     }
 }

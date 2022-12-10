@@ -16,6 +16,7 @@ public class Tiler : MonoBehaviour
     private GameObject[] tiles = new GameObject[MaxTiles];
     private int depth;
 
+    // Sets up tiler, intended to be called immediately after instantiation
     public void Initialize(GameObject level)
     {
         // Get a reference to the level manager
@@ -50,34 +51,25 @@ public class Tiler : MonoBehaviour
         lm.ChangeActivePlayer(GetActivePlayer());
     }
 
-    public void Flashback()
+    // Rewinds tiles back TIME time, makes new tile, and sets as active
+    public void Flashback(float time)
     {
-        IncreaseDepth();
         // for each tile
         //   rewind
         // copy tile[depth-1] into tile[depth]
+        IncreaseDepth();
         lm.ChangeActivePlayer(GetActivePlayer());
         return;
     }
 
+    // Forwards time, if applicable, to last active tile's time and sets as active
     public void Collapse()
     {
         DecreaseDepth();
+        // for each tile
+        //   forward
         lm.ChangeActivePlayer(GetActivePlayer());
         return;
-    }
-
-    // TODO: Delete this, only for debugging
-    public void Update()
-    {
-        if(Input.GetKeyDown(KeyCode.Space))
-        {
-            Flashback();
-        }
-        else if(Input.GetKeyDown(KeyCode.Backspace))
-        {
-            Collapse();
-        }
     }
 
     private void IncreaseDepth()

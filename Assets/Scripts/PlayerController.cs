@@ -4,7 +4,11 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    const float FlashbackTime = 10.0f;
+
     [SerializeField] GameObject activePlayer;
+
+    private LevelManager lm;
 
     [Header ("Movement Variables")]
     //Movement
@@ -32,11 +36,22 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float dashDis;
     [SerializeField] float dashTime;
 
+    void Start() {
+        lm = transform.parent.GetComponent<LevelManager>();
+        if(lm == null)
+        {
+            Debug.Log("Warning!!! Level manager is null!");
+        }
+    }
+
+    // TODO: Known bug, if you flashback or collapse while enemy is charging or cooling down, that
+    // enemy will forever be stuck in that state
     void Update()
     {
         // Handle case where activePlayer has not been set
         if(activePlayer == null)
         {
+            Debug.Log("Warning!!! activePlayer is null!!!");
             return;
         }
 
@@ -96,6 +111,18 @@ public class PlayerController : MonoBehaviour
 
         //Dashing
         if (dashing) { Dashing(); }
+
+        // Handle flashback and collapse commands
+        if(Input.GetKeyDown(KeyCode.Space))
+        {
+            Debug.Log("Flashback requested!");
+            lm.Flashback(FlashbackTime);
+        }
+        else if(Input.GetKeyDown(KeyCode.Backspace))
+        {
+            Debug.Log("Collapse requested!");
+            lm.Collapse();
+        }
     }
 
     void DashInitiated ()
