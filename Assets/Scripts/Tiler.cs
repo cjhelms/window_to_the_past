@@ -15,17 +15,38 @@ public class Tiler : MonoBehaviour
     private GameObject[] tiles = new GameObject[MaxTiles];
     private int depth;
 
+    // TODO: Debugging, must be deleted when integrated with level manager
+    GameObject level;
     void Start()
     {
-        cameraMain = GameObject.Find("CameraMain");
-        depth = 0;
+        level = Instantiate(Resources.Load("Level_1")) as GameObject;
+        Initialize(ref level);
+    }
 
+    void Initialize(ref GameObject level)
+    {
+        // Get a reference to the main camera
+        cameraMain = GameObject.Find("CameraMain");
+
+        // Initialize the tiles
         for(int i = 0; i < MaxTiles; i++)
         {
             cameras[i] = NewCamera(i);
-            tiles[i] = NewTile(i);
+            if(i == 0)
+            {
+                // Take over ownership of the level & track it as the first tile
+                tiles[0] = level;
+            }
+            else
+            {
+                // Initialize remaining tiles as copies of the current level
+                tiles[i] = Instantiate(level);
+            }
+            InitializeTile(i);
         }
 
+        // Only show the the first tile at the start
+        depth = 0;
         cameras[0].GetComponent<Camera>().enabled = true;
     }
 
@@ -35,15 +56,18 @@ public class Tiler : MonoBehaviour
         // for each tile
         //   rewind
         // copy tile[depth-1] into tile[depth]
+        // transform.parent.ChangeActivePlayer(tiles[depth].transform.Find("Player").gameObject);
         return;
     }
 
     void Collapse()
     {
         DecreaseDepth();
+        // transform.parent.ChangeActivePlayer(tiles[depth].transform.Find("Player").gameObject);
         return;
     }
 
+    // TODO: Delete this, only for debugging
     void Update()
     {
         if(Input.GetKeyDown(KeyCode.Space))
@@ -61,6 +85,7 @@ public class Tiler : MonoBehaviour
         if(depth < MaxDepth)
         {
             depth++;
+            ActivateTile(depth);
             AddCamera();
             Debug.Log("Increased depth, new depth: " + depth);
         }
@@ -74,6 +99,7 @@ public class Tiler : MonoBehaviour
     {
         if(depth > MinDepth)
         {
+            DeactivateTile(depth);
             depth--;
             RemoveCamera();
             Debug.Log("Decreased depth, new depth: " + depth);
@@ -149,19 +175,27 @@ public class Tiler : MonoBehaviour
         return obj;
     }
 
-    private GameObject NewTile(int ndx)
+    private void InitializeTile(int ndx)
     {
-        GameObject obj = Instantiate(Resources.Load("Level_1")) as GameObject;
+        GameObject obj = tiles[ndx];
         obj.name = "Tile" + ndx;
         obj.layer = GetLayerMask(ndx);
-        GameObject player = obj.transform.Find("Player").gameObject;
-        if(player == null)
+        DeactivateTile(ndx);
+    }
+
+    private void ActivateTile(int ndx){
+        GameObject obj = tiles[ndx];
+        foreach(Transform child in transform)
         {
-            Debug.Log("No player found!");
-            return obj;
+            child.gameObject.SetActive(true);
         }
-        player.GetComponent<SpriteRenderer>().color = RandomColor();
-        player.layer = GetLayerMask(ndx);
-        return obj;
+    }
+
+    private void DeactivateTile(int ndx){
+        GameObject obj = tiles[ndx];
+        foreach(Transform child in transform)
+        {
+            child.gameObject.SetActive(false);
+        }
     }
 }
