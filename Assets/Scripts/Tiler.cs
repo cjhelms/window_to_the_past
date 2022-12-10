@@ -10,13 +10,17 @@ public class Tiler : MonoBehaviour
     private const int MaxDepth = MaxTiles - 1;
     private const int MinDepth = 0;
 
+    private LevelManager lm;
     private GameObject cameraMain;
     private GameObject[] cameras = new GameObject[MaxTiles];
     private GameObject[] tiles = new GameObject[MaxTiles];
     private int depth;
 
-    public void Initialize(ref GameObject level)
+    public void Initialize(GameObject level)
     {
+        //Reference to Level Manager
+        lm = transform.parent.GetComponent<LevelManager>();
+
         // Get a reference to the main camera
         cameraMain = GameObject.Find("CameraMain");
 
@@ -27,6 +31,7 @@ public class Tiler : MonoBehaviour
             if(i == 0)
             {
                 // Take over ownership of the level & track it as the first tile
+
                 tiles[0] = level;
             }
             else
@@ -40,6 +45,10 @@ public class Tiler : MonoBehaviour
         // Only show the the first tile at the start
         depth = 0;
         cameras[0].GetComponent<Camera>().enabled = true;
+        ActivateTile(0);
+
+        //Set first active player
+        lm.ChangeActivePlayer(tiles[depth].transform.Find("Player").gameObject);
     }
 
     void Flashback()
@@ -48,14 +57,14 @@ public class Tiler : MonoBehaviour
         // for each tile
         //   rewind
         // copy tile[depth-1] into tile[depth]
-        transform.parent.GetComponent<LevelManager>().ChangeActivePlayer(tiles[depth].transform.Find("Player").gameObject);
+        lm.ChangeActivePlayer(tiles[depth].transform.Find("Player").gameObject);
         return;
     }
 
     void Collapse()
     {
         DecreaseDepth();
-        transform.parent.GetComponent<LevelManager>().ChangeActivePlayer(tiles[depth].transform.Find("Player").gameObject);
+        lm.ChangeActivePlayer(tiles[depth].transform.Find("Player").gameObject);
         return;
     }
 
@@ -172,12 +181,18 @@ public class Tiler : MonoBehaviour
         GameObject obj = tiles[ndx];
         obj.name = "Tile" + ndx;
         obj.layer = GetLayerMask(ndx);
+
+        foreach (Transform child in obj.transform)
+        {
+            child.gameObject.layer = GetLayerMask(ndx);
+        }
+
         DeactivateTile(ndx);
     }
 
     private void ActivateTile(int ndx){
         GameObject obj = tiles[ndx];
-        foreach(Transform child in transform)
+        foreach(Transform child in obj.transform)
         {
             child.gameObject.SetActive(true);
         }
@@ -185,7 +200,7 @@ public class Tiler : MonoBehaviour
 
     private void DeactivateTile(int ndx){
         GameObject obj = tiles[ndx];
-        foreach(Transform child in transform)
+        foreach(Transform child in obj.transform)
         {
             child.gameObject.SetActive(false);
         }

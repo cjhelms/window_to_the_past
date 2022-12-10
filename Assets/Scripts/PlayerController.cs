@@ -92,7 +92,7 @@ public class PlayerController : MonoBehaviour
         }
         
         //Dash input
-        if (Input.GetKeyDown(KeyCode.Space)) { DashInitiated(); }
+        if (Input.GetKeyDown(KeyCode.D)) { DashInitiated(); }
 
         //Dashing
         if (dashing) { Dashing(); }

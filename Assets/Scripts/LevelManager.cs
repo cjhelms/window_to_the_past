@@ -15,7 +15,10 @@ public class LevelManager : MonoBehaviour
 
         tiler = Instantiate(tiler, new Vector3(0, 0, 0), Quaternion.identity);
         tiler.transform.SetParent(gameObject.transform);
-        tiler.Initialize(ref levels[0]);
+
+        //Instantiate the prefab first!
+        GameObject level = Instantiate(levels[0], new Vector3(0, 0, 0), Quaternion.identity);
+        tiler.Initialize(level);
     }
 
     public void ChangeActivePlayer (GameObject newActivePlayer)
