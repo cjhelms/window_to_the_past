@@ -6,6 +6,7 @@ public class Enemy : MonoBehaviour
 {
     enum State
     {
+        Init,
         Chase,
         InitDash,
         InitTelegraph,
@@ -13,11 +14,14 @@ public class Enemy : MonoBehaviour
         Dash,
         InitCooldown,
         Cooldown,
+        InitRewind,
         Rewind,
+        Replay,
     }    
 
     // Parameters set in Unity editor
     [SerializeField] int MaxHistory;
+    [SerializeField] int FlashbackSpeedup;
     [SerializeField] float AttackDistance;
     [SerializeField] float ChaseSpeed;
     [SerializeField] float TelegraphCycleDuration;
@@ -53,8 +57,10 @@ public class Enemy : MonoBehaviour
     // Record of properties used to rewind the enemy
     Vector3[] positionHistory; 
     Color[] spriteColorHistory; 
-    int historySz;
     int historyNdx;
+    int historyCnt;
+    int rewindNdx;
+    int rewindCnt;
 
     public void SetTarget(GameObject player)
     {
@@ -63,16 +69,23 @@ public class Enemy : MonoBehaviour
 
     public void Flashback()
     {
-        state = State.Rewind;
-        Debug.Log("[any] --> Rewind");
+        if(historyCnt > 0)
+        {
+            state = State.InitRewind;
+            Debug.Log("[any] --> InitRewind");
+        }
+        else
+        {
+            Debug.Log("No history to rewind!");
+        }
     }
 
     void Start()
     {
         sprite = GetComponent<SpriteRenderer>();
-        state = State.Chase;
         positionHistory = new Vector3[MaxHistory];
         spriteColorHistory = new Color[MaxHistory];
+        state = State.Init;
     }
 
     void Update()
@@ -83,14 +96,12 @@ public class Enemy : MonoBehaviour
             return;
         }
 
-        if(state != State.Rewind) {
-            // Record history so enemy can be rewound during flashback
-            RecordHistory();
-        }
-
         // State machine
         switch(state)
         {
+            case State.Init:
+                Init();
+                break;
             case State.Chase:
                 Chase();
                 break;
@@ -112,13 +123,25 @@ public class Enemy : MonoBehaviour
             case State.Cooldown:
                 Cooldown();
                 break;
+            case State.InitRewind:
+                InitRewind();
+                break;
             case State.Rewind:
                 Rewind();
+                break;
+            case State.Replay:
+                Replay();
                 break;
             default:
                 Debug.Log("Unhandled state! " + state);
                 break;
         }
+
+        if(state != State.Rewind && state != State.Replay) {
+            // Record history so enemy can be rewound during flashback
+            RecordHistory();
+        }
+
     }
 
     void RecordHistory()
@@ -126,11 +149,19 @@ public class Enemy : MonoBehaviour
         positionHistory[historyNdx] = gameObject.transform.position;
         spriteColorHistory[historyNdx] = sprite.color; 
         historyNdx = (historyNdx + 1) % MaxHistory;
-        if(historySz < MaxHistory)
+        if(historyCnt < MaxHistory)
         {
-            historySz++;
+            historyCnt++;
         }
     }
+
+    void Init()
+    {
+        historyNdx = 0;
+        historyCnt = 0;
+        state = State.Chase;
+        Debug.Log("Init --> Chase");
+    }    
 
     void Chase()
     {
@@ -224,19 +255,67 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    void InitRewind()
+    {
+        rewindCnt = 0;
+        rewindNdx = historyNdx;
+        DecrementRewindNdx();
+        state = State.Rewind;
+        Debug.Log("InitRewind --> Rewind");
+    }
+
     void Rewind()
     {
-        historyNdx--;
-        if(historyNdx < 0)
+        DecrementRewindNdx(FlashbackSpeedup);
+        rewindCnt += FlashbackSpeedup;
+        if(rewindCnt >= historyCnt)
         {
-            historyNdx = MaxHistory - 1;
-        }
-        gameObject.transform.position = positionHistory[historyNdx];
-        sprite.color = spriteColorHistory[historyNdx];
-        historySz--;
-        if(historySz == 0)
+            rewindCnt = historyCnt;
+            if(historyCnt == MaxHistory)
+            {
+                rewindNdx = historyNdx;
+                IncrementRewindNdx();
+            }
+            else
+            {
+                rewindNdx = 0;
+            }
+            state = State.Replay;
+            Debug.Log("Rewind --> Replay");
+            return;
+        }        
+        gameObject.transform.position = positionHistory[rewindNdx];
+        sprite.color = spriteColorHistory[rewindNdx];
+    }
+
+    void Replay()
+    {
+        gameObject.transform.position = positionHistory[rewindNdx];
+        sprite.color = spriteColorHistory[rewindNdx];
+        IncrementRewindNdx();
+        rewindCnt--;
+        if(rewindCnt <= 0)
         {
             state = State.Chase;
+            Debug.Log("Replay --> Chase");
+            return;
+        }
+    }
+
+    void IncrementRewindNdx()
+    {
+        rewindNdx = (rewindNdx + 1) % MaxHistory;
+    }
+    
+    void DecrementRewindNdx(int cnt = 1)
+    {
+        if(rewindNdx - cnt < 0)
+        {
+            rewindNdx = MaxHistory - (cnt - rewindNdx);
+        }
+        else
+        {
+            rewindNdx -= cnt;
         }
     }
 
