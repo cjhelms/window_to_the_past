@@ -166,6 +166,9 @@ public class PlayerController : MonoBehaviour
         {
             dashing = false;
             moving = true;
+
+            //When the time is right, will this function be ready?
+            //SendMessageUpwards("HandleDash");
         }
     }
 
