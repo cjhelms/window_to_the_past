@@ -35,6 +35,7 @@ public class PlayerController : MonoBehaviour
     Vector3 dashEnd;
     [SerializeField] float dashDis;
     [SerializeField] float dashTime;
+    [SerializeField] GameObject attackZone;
 
     void Start() {
         lm = transform.parent.GetComponent<LevelManager>();
@@ -151,7 +152,33 @@ public class PlayerController : MonoBehaviour
 
             activePlayer.transform.position = new Vector3(dashX, dashY, 0);
         }
-        else {dashing = false; moving = true;}
+        else 
+        {
+            dashing = false;
+            Attack();
+            moving = true;
+        }
+    }
+
+    void Attack ()
+    {
+        if (moveVector.magnitude != 0)
+        {
+            Vector3 dashStart = new Vector3 (dashStartX, dashStartY, 0);
+            Vector3 zoneSpawnPos = (dashStart + dashEnd) / 2;
+
+            Vector3 rot = new Vector3();
+            if (xVelocity == 1 && yVelocity == 1)           {rot.z = 45;}
+            else if (xVelocity == -1 && yVelocity == 1)     {rot.z = 135;}
+            else if (xVelocity == -1 && yVelocity == -1)    {rot.z = 225;}
+            else if (xVelocity == 1 && yVelocity == -1)     {rot.z = 315;}
+            else if (yVelocity == 1)                        {rot.z = 90;}
+            else if (yVelocity == -1)                       {rot.z = 270;}
+
+
+            GameObject z = Instantiate(attackZone, zoneSpawnPos, Quaternion.identity);
+            z.transform.Rotate(rot);
+        }
     }
 
     public void ChangeActivePlayer (GameObject newActivePlayer) => activePlayer = newActivePlayer;
