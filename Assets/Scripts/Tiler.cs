@@ -54,9 +54,10 @@ public class Tiler : MonoBehaviour
     // Rewinds tiles back TIME time, makes new tile, and sets as active
     public void Flashback(float time)
     {
-        // for each tile
-        //   rewind
-        // copy tile[depth-1] into tile[depth]
+        foreach(Enemy enemy in FindObjectsOfType<Enemy>())
+        {
+            enemy.Flashback();
+        }
         IncreaseDepth();
         lm.ChangeActivePlayer(GetActivePlayer());
         return;

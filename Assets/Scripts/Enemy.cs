@@ -13,12 +13,11 @@ public class Enemy : MonoBehaviour
         Dash,
         InitCooldown,
         Cooldown,
+        Rewind,
     }    
 
-    // Maximum number of frames we will record a history of the enemy
-    const int MaxHistory = 300;
-
-    // Parameters
+    // Parameters set in Unity editor
+    [SerializeField] int MaxHistory;
     [SerializeField] float AttackDistance;
     [SerializeField] float ChaseSpeed;
     [SerializeField] float TelegraphCycleDuration;
@@ -52,18 +51,28 @@ public class Enemy : MonoBehaviour
     float cooldownTimer;
 
     // Record of properties used to rewind the enemy
-    Vector3[] PositionHistory = new Vector3[MaxHistory];
-    Vector3[] SpriteColorHistory = new Vector3[MaxHistory];
+    Vector3[] positionHistory; 
+    Color[] spriteColorHistory; 
+    int historySz;
+    int historyNdx;
 
     public void SetTarget(GameObject player)
     {
         this.player = player;
     }
 
+    public void Flashback()
+    {
+        state = State.Rewind;
+        Debug.Log("[any] --> Rewind");
+    }
+
     void Start()
     {
         sprite = GetComponent<SpriteRenderer>();
         state = State.Chase;
+        positionHistory = new Vector3[MaxHistory];
+        spriteColorHistory = new Color[MaxHistory];
     }
 
     void Update()
@@ -72,6 +81,11 @@ public class Enemy : MonoBehaviour
         {
             Debug.Log("Player is null");
             return;
+        }
+
+        if(state != State.Rewind) {
+            // Record history so enemy can be rewound during flashback
+            RecordHistory();
         }
 
         // State machine
@@ -98,9 +112,23 @@ public class Enemy : MonoBehaviour
             case State.Cooldown:
                 Cooldown();
                 break;
-            default:
-                Debug.Log("Unhandled case! " + state);
+            case State.Rewind:
+                Rewind();
                 break;
+            default:
+                Debug.Log("Unhandled state! " + state);
+                break;
+        }
+    }
+
+    void RecordHistory()
+    {
+        positionHistory[historyNdx] = gameObject.transform.position;
+        spriteColorHistory[historyNdx] = sprite.color; 
+        historyNdx = (historyNdx + 1) % MaxHistory;
+        if(historySz < MaxHistory)
+        {
+            historySz++;
         }
     }
 
@@ -193,6 +221,22 @@ public class Enemy : MonoBehaviour
             sprite.color = Color.red;
             state = State.Chase;
             Debug.Log("Cooldown --> Chase");
+        }
+    }
+
+    void Rewind()
+    {
+        historyNdx--;
+        if(historyNdx < 0)
+        {
+            historyNdx = MaxHistory - 1;
+        }
+        gameObject.transform.position = positionHistory[historyNdx];
+        sprite.color = spriteColorHistory[historyNdx];
+        historySz--;
+        if(historySz == 0)
+        {
+            state = State.Chase;
         }
     }
 

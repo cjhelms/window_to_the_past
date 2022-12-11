@@ -97,6 +97,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51b2392d1dd85e84b8473da021befeb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  MaxHistory: 2000
+  RewindSpeedupFactor: 5
   AttackDistance: 1
   ChaseSpeed: 1
   TelegraphCycleDuration: 0.2
