@@ -62,11 +62,6 @@ public class Enemy : MonoBehaviour
     int rewindNdx;
     int rewindCnt;
 
-    public void SetTarget(GameObject player)
-    {
-        this.player = player;
-    }
-
     public void Flashback()
     {
         if(historyCnt > 0)
@@ -86,6 +81,7 @@ public class Enemy : MonoBehaviour
         positionHistory = new Vector3[MaxHistory];
         spriteColorHistory = new Color[MaxHistory];
         state = State.Init;
+        player = GameObject.Find("" + transform.parent.name + "/Player");
     }
 
     void Update()
@@ -281,6 +277,7 @@ public class Enemy : MonoBehaviour
                 rewindNdx = 0;
             }
             state = State.Replay;
+            SendMessageUpwards("RewindComplete");
             Debug.Log("Rewind --> Replay");
             return;
         }        
@@ -297,6 +294,7 @@ public class Enemy : MonoBehaviour
         if(rewindCnt <= 0)
         {
             state = State.Chase;
+            SendMessageUpwards("ReplayComplete");
             Debug.Log("Replay --> Chase");
             return;
         }

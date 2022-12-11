@@ -26,6 +26,10 @@ public class Tiler : MonoBehaviour
     
     public void Initialize(GameObject level)
     {
+        cameras = new GameObject[MaxTiles];
+        tiles = new GameObject[MaxTiles];
+        state = State.Uninitialized;
+
         // Initialize the tiles
         for(int i = 0; i < MaxTiles; i++)
         {
@@ -44,16 +48,15 @@ public class Tiler : MonoBehaviour
         }
         depth = 0;
         ActivateTile(depth);
-        PushCamera();
+        cameras[depth].GetComponent<Camera>().enabled = true;
         state = State.Idle;
     }
 
-    public void HandleFlashbackRequest(float time)
+    public void HandleFlashbackRequest()
     {
-        Assert.IsTrue(state == State.Idle || state == State.WaitForReplay);
-        if(depth < MaxDepth)
+        if(depth < MaxDepth && (state == State.Idle || state == State.WaitForReplay))
         {
-            SendMessage("Flashback");
+            BroadcastMessage("Flashback");
             state = State.WaitForRewind;
         }
         else
@@ -74,22 +77,19 @@ public class Tiler : MonoBehaviour
 
     public void ReplayComplete()
     {
-        Assert.AreEqual(state, State.WaitForReplay);
-        Assert.IsTrue(depth > 0);
-        PopTile();
-    }
-
-    void start()
-    {
-        cameras = new GameObject[MaxTiles];
-        tiles = new GameObject[MaxTiles];
-        state = State.Uninitialized;
+        Assert.AreNotEqual(state, State.Uninitialized); 
+        if(state == State.WaitForReplay) {
+            Assert.IsTrue(depth > 0);
+            PopTile();
+            state = State.Idle;
+        }
     }
 
     void PushTile()
     {
         depth++;
         tiles[depth] = Instantiate(tiles[depth - 1]);
+        InitializeTile(depth);
         ActivateTile(depth);
         PushCamera();
     }
@@ -192,6 +192,7 @@ public class Tiler : MonoBehaviour
     void InitializeTile(int ndx)
     {
         GameObject obj = tiles[ndx];
+        obj.transform.parent = gameObject.transform;
         obj.name = "Tile" + ndx;
         obj.layer = GetLayerMask(ndx);
         foreach (Transform child in obj.transform)
@@ -199,7 +200,7 @@ public class Tiler : MonoBehaviour
             child.gameObject.layer = GetLayerMask(ndx);
         }
         DeactivateTile(ndx);
-    }
+    } 
 
     void ActivateTile(int ndx)
     {
