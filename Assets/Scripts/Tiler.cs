@@ -16,9 +16,10 @@ public class Tiler : MonoBehaviour
     private GameObject[] tiles = new GameObject[MaxTiles];
     private int depth;
 
+    // Sets up tiler, intended to be called immediately after instantiation
     public void Initialize(GameObject level)
     {
-        //Reference to Level Manager
+        // Get a reference to the level manager
         lm = transform.parent.GetComponent<LevelManager>();
 
         // Get a reference to the main camera
@@ -31,7 +32,6 @@ public class Tiler : MonoBehaviour
             if(i == 0)
             {
                 // Take over ownership of the level & track it as the first tile
-
                 tiles[0] = level;
             }
             else
@@ -48,37 +48,28 @@ public class Tiler : MonoBehaviour
         ActivateTile(0);
 
         //Set first active player
-        lm.ChangeActivePlayer(tiles[depth].transform.Find("Player").gameObject);
+        lm.ChangeActivePlayer(GetActivePlayer());
     }
 
-    void Flashback()
+    // Rewinds tiles back TIME time, makes new tile, and sets as active
+    public void Flashback(float time)
     {
-        IncreaseDepth();
         // for each tile
         //   rewind
         // copy tile[depth-1] into tile[depth]
-        lm.ChangeActivePlayer(tiles[depth].transform.Find("Player").gameObject);
+        IncreaseDepth();
+        lm.ChangeActivePlayer(GetActivePlayer());
         return;
     }
 
-    void Collapse()
+    // Forwards time, if applicable, to last active tile's time and sets as active
+    public void Collapse()
     {
         DecreaseDepth();
-        lm.ChangeActivePlayer(tiles[depth].transform.Find("Player").gameObject);
+        // for each tile
+        //   forward
+        lm.ChangeActivePlayer(GetActivePlayer());
         return;
-    }
-
-    // TODO: Delete this, only for debugging
-    void Update()
-    {
-        if(Input.GetKeyDown(KeyCode.Space))
-        {
-            Flashback();
-        }
-        else if(Input.GetKeyDown(KeyCode.Backspace))
-        {
-            Collapse();
-        }
     }
 
     private void IncreaseDepth()
@@ -117,18 +108,30 @@ public class Tiler : MonoBehaviour
         Camera prevCam = cameras[depth - 1].GetComponent<Camera>();
         if(depth % 2 == 1)
         {
-            prevCam.rect = new Rect(prevCam.rect.x, prevCam.rect.y, prevCam.rect.width / 2, 
+            prevCam.rect = new Rect(
+                prevCam.rect.x, 
+                prevCam.rect.y, 
+                prevCam.rect.width / 2, 
                 prevCam.rect.height);
-            cam.rect = new Rect(prevCam.rect.x + (MaxXY - prevCam.rect.x) / 2, prevCam.rect.y,
-                prevCam.rect.width, prevCam.rect.height);
+            cam.rect = new Rect(
+                prevCam.rect.x + (MaxXY - prevCam.rect.x) / 2, 
+                prevCam.rect.y,
+                prevCam.rect.width,
+                prevCam.rect.height);
             Debug.Log("Halving prevCam width, moving cam right");
         }
         else
         {
-            prevCam.rect = new Rect(prevCam.rect.x, prevCam.rect.y, prevCam.rect.width, 
+            prevCam.rect = new Rect(
+                prevCam.rect.x, 
+                prevCam.rect.y, 
+                prevCam.rect.width, 
                 prevCam.rect.height / 2);
-            cam.rect = new Rect(prevCam.rect.x, prevCam.rect.y + (MaxXY - prevCam.rect.y) / 2,
-                prevCam.rect.width, prevCam.rect.height);
+            cam.rect = new Rect(
+                prevCam.rect.x,
+                prevCam.rect.y + (MaxXY - prevCam.rect.y) / 2,
+                prevCam.rect.width,
+                prevCam.rect.height);
             Debug.Log("Halving prevCam height, moving cam up");
         }
         cam.enabled = true;
@@ -141,12 +144,20 @@ public class Tiler : MonoBehaviour
         cameras[depth + 1].GetComponent<Camera>().enabled = false;
         if(depth % 2 == 1)
         {
-            cam.rect = new Rect(cam.rect.x, cam.rect.y, cam.rect.width, cam.rect.height * 2);
+            cam.rect = new Rect(
+                cam.rect.x, 
+                cam.rect.y, 
+                cam.rect.width,
+                cam.rect.height * 2);
             Debug.Log("Doubling cam height");
         }
         else
         {
-            cam.rect = new Rect(cam.rect.x, cam.rect.y, cam.rect.width * 2, cam.rect.height);
+            cam.rect = new Rect(
+                cam.rect.x, 
+                cam.rect.y, 
+                cam.rect.width * 2, 
+                cam.rect.height);
             Debug.Log("Doubling cam width");
         }
         Debug.Log("cam: " + cam.rect.ToString());
@@ -159,8 +170,11 @@ public class Tiler : MonoBehaviour
 
     private Color RandomColor()
     {
-        return new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f),
-            Random.Range(0.0f, 1.0f), 1);
+        return new Color(
+            Random.Range(0.0f, 1.0f),
+            Random.Range(0.0f, 1.0f),
+            Random.Range(0.0f, 1.0f),
+            1);
     }
 
     private GameObject NewCamera(int ndx)
@@ -181,16 +195,15 @@ public class Tiler : MonoBehaviour
         GameObject obj = tiles[ndx];
         obj.name = "Tile" + ndx;
         obj.layer = GetLayerMask(ndx);
-
         foreach (Transform child in obj.transform)
         {
             child.gameObject.layer = GetLayerMask(ndx);
         }
-
         DeactivateTile(ndx);
     }
 
-    private void ActivateTile(int ndx){
+    private void ActivateTile(int ndx)
+    {
         GameObject obj = tiles[ndx];
         foreach(Transform child in obj.transform)
         {
@@ -198,11 +211,17 @@ public class Tiler : MonoBehaviour
         }
     }
 
-    private void DeactivateTile(int ndx){
+    private void DeactivateTile(int ndx)
+    {
         GameObject obj = tiles[ndx];
         foreach(Transform child in obj.transform)
         {
             child.gameObject.SetActive(false);
         }
+    }
+
+    private GameObject GetActivePlayer()
+    {
+        return tiles[depth].transform.Find("Player").gameObject;
     }
 }
