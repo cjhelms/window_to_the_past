@@ -6,6 +6,6 @@ public class Tile : MonoBehaviour
 {
     public void HandleDash ()
     {
-        print("From tile: Hello!");
+        print("From tile: Handling dash!");
     }
 }

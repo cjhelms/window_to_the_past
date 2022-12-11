@@ -6,14 +6,9 @@ public class PlayerController : MonoBehaviour
 {
     const float FlashbackTime = 10.0f;
 
-    //[SerializeField] GameObject activePlayer;
-
-    private LevelManager lm;
-    //GameObject myPlayer;
-
     [Header ("Movement Variables")]
     //Movement
-    bool moving = true;
+    //bool moving = true;
     Vector3 moveVector;
     bool rightInput;
     bool leftInput;
@@ -27,7 +22,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float speed;
 
     //Dash
-    bool dashing = false;
+    //bool dashing = false;
     float dashTimer;
     Vector3 dashStart;
     float dashX;
@@ -38,88 +33,40 @@ public class PlayerController : MonoBehaviour
     [SerializeField] GameObject dashTrailPrefab;
     GameObject dashTrail;
 
-
-    void Start() {
-        //lm = transform.parent.GetComponent<LevelManager>();
-        // if(lm == null)
-        // {
-        //     Debug.Log("Warning!!! Level manager is null!");
-        // }
-
-        // string parentName = transform.parent.name;
-        // myPlayer = GameObject.Find("" + transform.parent.name + "/Player");
+    enum State
+    {
+        Active,
+        Dashing,
+        Inactive,
+        Rewind,
+        Replay
     }
+
+    State state;    
+
+    void Start() {}
 
     // TODO: Known bug, if you flashback or collapse while enemy is charging or cooling down, that
     // enemy will forever be stuck in that state
     void Update()
     {
-        // Handle case where activePlayer has not been set
-        // if (myPlayer == null)
-        // {
-        //     Debug.Log("Warning!!! activePlayer is null!!!");
-        //     return;
-        // }
-
-        //Moving around
-        if (moving)
+        switch (state)
         {
-            //Listen for inputs
-            if (Input.GetKey(KeyCode.RightArrow)) {rightInput = true;} else {rightInput = false;}
-            if (Input.GetKey(KeyCode.LeftArrow))  {leftInput = true;}  else {leftInput = false;}
-            if (Input.GetKey(KeyCode.UpArrow))    {upInput = true;}    else {upInput = false;}
-            if (Input.GetKey(KeyCode.DownArrow))  {downInput = true;}  else {downInput = false;}
-
-            //Set velocity targets
-            if (rightInput) {xVelocity = 1;}
-            if (leftInput)  {xVelocity = -1;}
-            if ((rightInput && leftInput) || (!rightInput && !leftInput)) {xVelocity = 0;}
-            if (upInput)    {yVelocity = 1;}
-            if (downInput)  {yVelocity = -1;}
-            if ((upInput && downInput) || (!upInput && !downInput))       {yVelocity = 0;}
-            //Create vector and normalize
-            velocityVector = new Vector3(xVelocity, yVelocity, 0).normalized;
-            
-            //Adjust velocity x
-            if (moveVector.x < velocityVector.x) 
-            {
-                moveVector.x += acceleration * Time.deltaTime;
-                if (moveVector.x > 1) {moveVector.x = 1;}
-            }
-            else if (moveVector.x > velocityVector.x)
-            {
-                moveVector.x -= acceleration * Time.deltaTime;
-                if (moveVector.x < -1) {moveVector.x = -1;}
-            }
-
-            //Adjust velocity y
-            if (moveVector.y < velocityVector.y) 
-            {
-                moveVector.y += acceleration * Time.deltaTime;
-                if (moveVector.y > 1) {moveVector.y = 1;}
-            }
-            else if (moveVector.y > velocityVector.y)
-            {
-                moveVector.y -= acceleration * Time.deltaTime;
-                if (moveVector.y < -1) {moveVector.y = -1;}
-            }
-
-            //Round near zero (only do this is no key pressed?)
-            if (!rightInput && !leftInput && !upInput && !downInput)
-            {
-                if (Mathf.Abs(moveVector.x) < 0.2f) {moveVector.x = 0;}
-                if (Mathf.Abs(moveVector.y) < 0.2f) {moveVector.y = 0;}
-            }
-            
-            //Move active player
-            gameObject.transform.Translate(moveVector * speed * Time.deltaTime);
+            case State.Active:
+                InputListening();
+                break;
+            case State.Dashing:
+                Dashing();
+                break;
         }
-        
+    }
+
+    void InputListening ()
+    {
+        Movement();
+
         //Dash input
         if (Input.GetKeyDown(KeyCode.D) && moveVector.magnitude != 0) { DashInitiated(); }
-
-        //Dashing
-        if (dashing) { Dashing(); }
 
         // Handle flashback and collapse commands
         if(Input.GetKeyDown(KeyCode.Space))
@@ -136,10 +83,62 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    void Movement ()
+    {
+        //Listen for inputs
+        if (Input.GetKey(KeyCode.RightArrow)) {rightInput = true;} else {rightInput = false;}
+        if (Input.GetKey(KeyCode.LeftArrow))  {leftInput = true;}  else {leftInput = false;}
+        if (Input.GetKey(KeyCode.UpArrow))    {upInput = true;}    else {upInput = false;}
+        if (Input.GetKey(KeyCode.DownArrow))  {downInput = true;}  else {downInput = false;}
+
+        //Set velocity targets
+        if (rightInput) {xVelocity = 1;}
+        if (leftInput)  {xVelocity = -1;}
+        if ((rightInput && leftInput) || (!rightInput && !leftInput)) {xVelocity = 0;}
+        if (upInput)    {yVelocity = 1;}
+        if (downInput)  {yVelocity = -1;}
+        if ((upInput && downInput) || (!upInput && !downInput))       {yVelocity = 0;}
+        //Create vector and normalize
+        velocityVector = new Vector3(xVelocity, yVelocity, 0).normalized;
+        
+        //Adjust velocity x
+        if (moveVector.x < velocityVector.x) 
+        {
+            moveVector.x += acceleration * Time.deltaTime;
+            if (moveVector.x > 1) {moveVector.x = 1;}
+        }
+        else if (moveVector.x > velocityVector.x)
+        {
+            moveVector.x -= acceleration * Time.deltaTime;
+            if (moveVector.x < -1) {moveVector.x = -1;}
+        }
+
+        //Adjust velocity y
+        if (moveVector.y < velocityVector.y) 
+        {
+            moveVector.y += acceleration * Time.deltaTime;
+            if (moveVector.y > 1) {moveVector.y = 1;}
+        }
+        else if (moveVector.y > velocityVector.y)
+        {
+            moveVector.y -= acceleration * Time.deltaTime;
+            if (moveVector.y < -1) {moveVector.y = -1;}
+        }
+
+        //Round near zero (only do this is no key pressed?)
+        if (!rightInput && !leftInput && !upInput && !downInput)
+        {
+            if (Mathf.Abs(moveVector.x) < 0.2f) {moveVector.x = 0;}
+            if (Mathf.Abs(moveVector.y) < 0.2f) {moveVector.y = 0;}
+        }
+        
+        //Move active player
+        gameObject.transform.Translate(moveVector * speed * Time.deltaTime);
+    }
+
     void DashInitiated ()
     {
-        moving = false;
-        dashing = true;
+        //moving = false;
 
         //Setting numbers for dash
         dashStart.x = gameObject.transform.position.x;
@@ -149,6 +148,9 @@ public class PlayerController : MonoBehaviour
         dashTimer = 0;
 
         InstantiateDashTrail();
+
+        //dashing = true;
+        state = State.Dashing;
     }
 
     void Dashing ()
@@ -170,11 +172,12 @@ public class PlayerController : MonoBehaviour
         }
         else 
         {
-            dashing = false;
-            moving = true;
+            //dashing = false;
+            //moving = true;
+            state = State.Active;
 
             //When the time is right, will this function be ready?
-            //SendMessageUpwards("HandleDash");
+            SendMessageUpwards("HandleDash");
         }
     }
 
@@ -192,6 +195,4 @@ public class PlayerController : MonoBehaviour
 
         dashTrail.transform.Rotate(rot);
     }
-
-    //public void ChangeActivePlayer (GameObject newActivePlayer) => gameObject = newActivePlayer;
 }
