@@ -29,12 +29,17 @@ public class Enemy : MonoBehaviour
 
     void Start ()
     {
-        player = GameObject.Find("Player");
+        // player = GameObject.Find("Player");
         spriteRend = GetComponent<SpriteRenderer>();
     }
 
     void Update()
     {
+        if(player == null)
+        {
+            return;
+        }
+
         //Vector3 pointing to player
         targetVector = player.transform.position - gameObject.transform.position;
 
@@ -97,5 +102,10 @@ public class Enemy : MonoBehaviour
         yield return new WaitForSeconds(dashCooldown);
         spriteRend.color = Color.red;
         chasing = true;
+    }
+
+    public void SetTarget(GameObject player)
+    {
+        this.player = player;
     }
 }

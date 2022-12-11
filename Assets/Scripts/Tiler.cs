@@ -209,6 +209,11 @@ public class Tiler : MonoBehaviour
         {
             child.gameObject.SetActive(true);
         }
+        var enemies = tiles[ndx].GetComponentsInChildren<Enemy>();
+        foreach(Enemy enemy in enemies)
+        {
+            enemy.SetTarget(GetPlayer(ndx));
+        }
     }
 
     private void DeactivateTile(int ndx)
@@ -222,6 +227,11 @@ public class Tiler : MonoBehaviour
 
     private GameObject GetActivePlayer()
     {
-        return tiles[depth].transform.Find("Player").gameObject;
+        return GetPlayer(depth);
+    }
+
+    private GameObject GetPlayer(int ndx)
+    {
+        return tiles[ndx].transform.Find("Player").gameObject;
     }
 }
