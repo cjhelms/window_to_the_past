@@ -212,7 +212,7 @@ public class Tiler : MonoBehaviour
         var enemies = tiles[ndx].GetComponentsInChildren<Enemy>();
         foreach(Enemy enemy in enemies)
         {
-            enemy.SetTarget(GetPlayer(ndx));
+            enemy.player = GetPlayer(ndx);
         }
     }
 

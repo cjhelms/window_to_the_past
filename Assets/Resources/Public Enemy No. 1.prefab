@@ -97,8 +97,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51b2392d1dd85e84b8473da021befeb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attackDistance: 2
-  speed: 2
-  dashDis: 3
-  dashTime: 0.1
-  dashCooldown: 2
+  AttackDistance: 1
+  ChaseSpeed: 1
+  TelegraphCycleDuration: 0.2
+  TelegraphDuration: 1
+  DashDistance: 2
+  DashDuration: 0.15
+  CooldownDuration: 1
