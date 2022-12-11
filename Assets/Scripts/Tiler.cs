@@ -1,30 +1,31 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public class Tiler : MonoBehaviour
 {
-    private const int MaxXY = 1;
-    private const int MaxLayerMask = 31;
-    private const int MaxTiles = 12;
-    private const int MaxDepth = MaxTiles - 1;
-    private const int MinDepth = 0;
+    enum State
+    {
+        Uninitialized,
+        Idle,
+        WaitForRewind,
+        WaitForReplay
+    }    
 
-    private LevelManager lm;
-    private GameObject cameraMain;
-    private GameObject[] cameras = new GameObject[MaxTiles];
-    private GameObject[] tiles = new GameObject[MaxTiles];
-    private int depth;
+    const int MaxTiles = 4;
+    const int MaxXY = 1;
+    const int MaxLayerMask = 31;
+    const int MaxDepth = MaxTiles - 1;
+    const int MinDepth = 0;
 
-    // Sets up tiler, intended to be called immediately after instantiation
+    State state;    
+    GameObject[] cameras;
+    GameObject[] tiles;
+    int depth;
+    
     public void Initialize(GameObject level)
     {
-        // Get a reference to the level manager
-        lm = transform.parent.GetComponent<LevelManager>();
-
-        // Get a reference to the main camera
-        cameraMain = GameObject.Find("CameraMain");
-
         // Initialize the tiles
         for(int i = 0; i < MaxTiles; i++)
         {
@@ -41,69 +42,66 @@ public class Tiler : MonoBehaviour
             }
             InitializeTile(i);
         }
-
-        // Only show the the first tile at the start
         depth = 0;
-        cameras[0].GetComponent<Camera>().enabled = true;
-        ActivateTile(0);
-
-        //Set first active player
-        lm.ChangeActivePlayer(GetActivePlayer());
+        ActivateTile(depth);
+        PushCamera();
+        state = State.Idle;
     }
 
-    // Rewinds tiles back TIME time, makes new tile, and sets as active
-    public void Flashback(float time)
+    public void HandleFlashbackRequest(float time)
     {
-        foreach(Enemy enemy in FindObjectsOfType<Enemy>())
-        {
-            enemy.Flashback();
-        }
-        IncreaseDepth();
-        lm.ChangeActivePlayer(GetActivePlayer());
-        return;
-    }
-
-    // Forwards time, if applicable, to last active tile's time and sets as active
-    public void Collapse()
-    {
-        DecreaseDepth();
-        // for each tile
-        //   forward
-        lm.ChangeActivePlayer(GetActivePlayer());
-        return;
-    }
-
-    private void IncreaseDepth()
-    {
+        Assert.IsTrue(state == State.Idle || state == State.WaitForReplay);
         if(depth < MaxDepth)
         {
-            depth++;
-            ActivateTile(depth);
-            AddCamera();
-            Debug.Log("Increased depth, new depth: " + depth);
+            SendMessage("Flashback");
+            state = State.WaitForRewind;
         }
         else
         {
-            Debug.Log("Failed to increase depth, maximum depth reached!");
+            Debug.Log("Maximum depth reached, cannot flashback!");
         }
     }
 
-    private void DecreaseDepth()
+    public void RewindComplete()
     {
-        if(depth > MinDepth)
+        Assert.AreNotEqual(state, State.Uninitialized); 
+        if(state == State.WaitForRewind)
         {
-            DeactivateTile(depth);
-            depth--;
-            RemoveCamera();
-            Debug.Log("Decreased depth, new depth: " + depth);
-        }
-        else
-        {
-            Debug.Log("Failed to decrease depth, minimum depth reached!");
+            PushTile();
+            state = State.WaitForReplay;
         }
     }
 
-    private void AddCamera()
+    public void ReplayComplete()
+    {
+        Assert.AreEqual(state, State.WaitForReplay);
+        Assert.IsTrue(depth > 0);
+        PopTile();
+    }
+
+    void start()
+    {
+        cameras = new GameObject[MaxTiles];
+        tiles = new GameObject[MaxTiles];
+        state = State.Uninitialized;
+    }
+
+    void PushTile()
+    {
+        depth++;
+        tiles[depth] = Instantiate(tiles[depth - 1]);
+        ActivateTile(depth);
+        PushCamera();
+    }
+
+    void PopTile()
+    {
+        PopCamera();
+        DeactivateTile(depth);
+        depth--;
+    }
+
+    void PushCamera()
     {
         Camera cam = cameras[depth].GetComponent<Camera>();
         Camera prevCam = cameras[depth - 1].GetComponent<Camera>();
@@ -139,7 +137,7 @@ public class Tiler : MonoBehaviour
         Debug.Log("prevCam: " + prevCam.rect.ToString() + ", cam: " + cam.rect.ToString());
     }
 
-    private void RemoveCamera()
+    void PopCamera()
     {
         Camera cam = cameras[depth].GetComponent<Camera>();
         cameras[depth + 1].GetComponent<Camera>().enabled = false;
@@ -164,12 +162,12 @@ public class Tiler : MonoBehaviour
         Debug.Log("cam: " + cam.rect.ToString());
     }
 
-    private LayerMask GetLayerMask(int ndx)
+    LayerMask GetLayerMask(int ndx)
     {
         return (LayerMask)(MaxLayerMask - ndx);
     }
 
-    private Color RandomColor()
+    Color RandomColor()
     {
         return new Color(
             Random.Range(0.0f, 1.0f),
@@ -178,11 +176,11 @@ public class Tiler : MonoBehaviour
             1);
     }
 
-    private GameObject NewCamera(int ndx)
+    GameObject NewCamera(int ndx)
     {
         GameObject obj = new GameObject("Cam" + ndx);
-        obj.transform.parent = cameraMain.transform;
-        obj.transform.position = cameraMain.transform.position;
+        obj.transform.parent = Camera.main.transform;
+        obj.transform.position = Camera.main.transform.position;
         Camera cam = obj.AddComponent<Camera>() as Camera;
         cam.orthographic = true;
         cam.cullingMask = 1 << GetLayerMask(ndx) | 1;
@@ -191,7 +189,7 @@ public class Tiler : MonoBehaviour
         return obj;
     }
 
-    private void InitializeTile(int ndx)
+    void InitializeTile(int ndx)
     {
         GameObject obj = tiles[ndx];
         obj.name = "Tile" + ndx;
@@ -203,36 +201,23 @@ public class Tiler : MonoBehaviour
         DeactivateTile(ndx);
     }
 
-    private void ActivateTile(int ndx)
+    void ActivateTile(int ndx)
     {
         GameObject obj = tiles[ndx];
+        obj.SetActive(true);
         foreach(Transform child in obj.transform)
         {
             child.gameObject.SetActive(true);
         }
-        var enemies = tiles[ndx].GetComponentsInChildren<Enemy>();
-        foreach(Enemy enemy in enemies)
-        {
-            enemy.player = GetPlayer(ndx);
-        }
     }
 
-    private void DeactivateTile(int ndx)
+    void DeactivateTile(int ndx)
     {
         GameObject obj = tiles[ndx];
+        obj.SetActive(false);
         foreach(Transform child in obj.transform)
         {
             child.gameObject.SetActive(false);
         }
-    }
-
-    private GameObject GetActivePlayer()
-    {
-        return GetPlayer(depth);
-    }
-
-    private GameObject GetPlayer(int ndx)
-    {
-        return tiles[ndx].transform.Find("Player").gameObject;
     }
 }

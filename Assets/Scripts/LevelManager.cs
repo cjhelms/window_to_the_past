@@ -46,13 +46,11 @@ public class LevelManager : MonoBehaviour
     public void Flashback(float time)
     {
         Debug.Log("Forwarding flashback request to tiler");
-        tiler.Flashback(time);
     }
 
     // Collapse top timeline
     public void Collapse()
     {
         Debug.Log("Forwarding collapse request to tiler");
-        tiler.Collapse();
     }
 }
