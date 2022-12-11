@@ -6,6 +6,7 @@ public class Enemy : MonoBehaviour
 {
     enum State
     {
+        Init,
         Chase,
         InitDash,
         InitTelegraph,
@@ -13,7 +14,9 @@ public class Enemy : MonoBehaviour
         Dash,
         InitCooldown,
         Cooldown,
+        InitRewind,
         Rewind,
+        Replay,
     }    
 
     // Parameters set in Unity editor
@@ -57,6 +60,7 @@ public class Enemy : MonoBehaviour
     int historySz;
     int historyNdx;
     int historyDecimator;
+    int rewindNdx;
 
     public void SetTarget(GameObject player)
     {
@@ -65,17 +69,23 @@ public class Enemy : MonoBehaviour
 
     public void Flashback()
     {
-        state = State.Rewind;
-        Debug.Log("[any] --> Rewind");
+        if(historySz > 0)
+        {
+            state = State.InitRewind;
+            Debug.Log("[any] --> InitRewind");
+        }
+        else
+        {
+            Debug.Log("No history to rewind!");
+        }
     }
 
     void Start()
     {
         sprite = GetComponent<SpriteRenderer>();
-        state = State.Chase;
         positionHistory = new Vector3[MaxHistory];
         spriteColorHistory = new Color[MaxHistory];
-        historyDecimator = 0;
+        state = State.Init;
     }
 
     void Update()
@@ -86,7 +96,7 @@ public class Enemy : MonoBehaviour
             return;
         }
 
-        if(state != State.Rewind && historyDecimator > FlashbackSpeedup) {
+        if(state != State.Rewind && state != State.Replay && historyDecimator > FlashbackSpeedup) {
             // Record history so enemy can be rewound during flashback
             RecordHistory();
             historyDecimator = 0;
@@ -99,6 +109,9 @@ public class Enemy : MonoBehaviour
         // State machine
         switch(state)
         {
+            case State.Init:
+                Init();
+                break;
             case State.Chase:
                 Chase();
                 break;
@@ -120,8 +133,14 @@ public class Enemy : MonoBehaviour
             case State.Cooldown:
                 Cooldown();
                 break;
+            case State.InitRewind:
+                InitRewind();
+                break;
             case State.Rewind:
                 Rewind();
+                break;
+            case State.Replay:
+                Replay();
                 break;
             default:
                 Debug.Log("Unhandled state! " + state);
@@ -139,6 +158,15 @@ public class Enemy : MonoBehaviour
             historySz++;
         }
     }
+
+    void Init()
+    {
+        historyNdx = 0;
+        historySz = 0;
+        historyDecimator = 0;
+        state = State.Chase;
+        Debug.Log("Init --> Chase");
+    }    
 
     void Chase()
     {
@@ -232,20 +260,66 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    void InitRewind()
+    {
+        rewindNdx = historyNdx;
+        DecrementRewindNdx();
+        state = State.Rewind;
+        Debug.Log("InitRewind --> Rewind");
+    }
+
     void Rewind()
     {
-        historyNdx--;
-        if(historyNdx < 0)
+        DecrementRewindNdx();
+        if(historySz == MaxHistory)
         {
-            historyNdx = MaxHistory - 1;
+            if(rewindNdx == historyNdx)
+            {
+                DecrementRewindNdx();
+                state = State.Replay;
+                Debug.Log("Rewind --> Replay");
+                return;
+            }
         }
-        gameObject.transform.position = positionHistory[historyNdx];
-        sprite.color = spriteColorHistory[historyNdx];
-        historySz--;
-        if(historySz == 0)
+        else
         {
-            state = State.Chase;
+            if(rewindNdx == 0)
+            {
+                state = State.Replay;
+                Debug.Log("Rewind --> Replay");
+                return;
+            }
         }
+        gameObject.transform.position = positionHistory[rewindNdx];
+        sprite.color = spriteColorHistory[rewindNdx];
+    }
+
+    void Replay()
+    {
+        IncrementRewindNdx();
+        if(rewindNdx == historyNdx)
+        {
+            state = State.Init;
+            Debug.Log("Replay --> Init");
+            return;
+        }
+        gameObject.transform.position = positionHistory[rewindNdx];
+        sprite.color = spriteColorHistory[rewindNdx];
+    }
+
+    void IncrementRewindNdx()
+    {
+        rewindNdx = (rewindNdx + 1) % MaxHistory;
+    }
+    
+    void DecrementRewindNdx()
+    {
+        rewindNdx--;
+        if(rewindNdx < 0)
+        {
+            rewindNdx = MaxHistory - 1;
+        }
+
     }
 
     Vector3 GetTargetVector()
