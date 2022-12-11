@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6815145638076043481}
   - component: {fileID: 627791991968625420}
+  - component: {fileID: 5997872739287689938}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -84,6 +85,23 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &5997872739287689938
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5096265893518001403}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c05898390408af40a1751e4ea22af9c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  acceleration: 5
+  speed: 3
+  dashDis: 2
+  dashTime: 0.15
+  dashTrailPrefab: {fileID: 3350929496504445378, guid: 213066925c11216498514d07181530d7, type: 3}
 --- !u!1 &6944707149515498997
 GameObject:
   m_ObjectHideFlags: 0

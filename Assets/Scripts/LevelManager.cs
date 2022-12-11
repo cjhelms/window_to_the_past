@@ -11,9 +11,10 @@ public class LevelManager : MonoBehaviour
 
     void Start()
     {
+        //PRIMED FOR DELETION
         // Make the persistent player controller, will persist for rest of the game
-        playerController = Instantiate(playerController, new Vector3(0, 0, 0), Quaternion.identity);
-        playerController.transform.SetParent(gameObject.transform);
+        //playerController = Instantiate(playerController, new Vector3(0, 0, 0), Quaternion.identity);
+        //playerController.transform.SetParent(gameObject.transform);
         
         // Set level to first level
         curLevel = -1;
@@ -38,7 +39,7 @@ public class LevelManager : MonoBehaviour
     // Notify the player controller that the active player has changed & who is now active
     public void ChangeActivePlayer (GameObject newActivePlayer)
     { 
-        playerController.ChangeActivePlayer(newActivePlayer); 
+        //playerController.ChangeActivePlayer(newActivePlayer); 
     }
 
     // Rewind and start a new timeline

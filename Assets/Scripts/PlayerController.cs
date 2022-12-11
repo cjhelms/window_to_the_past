@@ -6,9 +6,10 @@ public class PlayerController : MonoBehaviour
 {
     const float FlashbackTime = 10.0f;
 
-    [SerializeField] GameObject activePlayer;
+    //[SerializeField] GameObject activePlayer;
 
     private LevelManager lm;
+    //GameObject myPlayer;
 
     [Header ("Movement Variables")]
     //Movement
@@ -39,11 +40,14 @@ public class PlayerController : MonoBehaviour
 
 
     void Start() {
-        lm = transform.parent.GetComponent<LevelManager>();
-        if(lm == null)
-        {
-            Debug.Log("Warning!!! Level manager is null!");
-        }
+        //lm = transform.parent.GetComponent<LevelManager>();
+        // if(lm == null)
+        // {
+        //     Debug.Log("Warning!!! Level manager is null!");
+        // }
+
+        // string parentName = transform.parent.name;
+        // myPlayer = GameObject.Find("" + transform.parent.name + "/Player");
     }
 
     // TODO: Known bug, if you flashback or collapse while enemy is charging or cooling down, that
@@ -51,11 +55,11 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         // Handle case where activePlayer has not been set
-        if(activePlayer == null)
-        {
-            Debug.Log("Warning!!! activePlayer is null!!!");
-            return;
-        }
+        // if (myPlayer == null)
+        // {
+        //     Debug.Log("Warning!!! activePlayer is null!!!");
+        //     return;
+        // }
 
         //Moving around
         if (moving)
@@ -108,7 +112,7 @@ public class PlayerController : MonoBehaviour
             }
             
             //Move active player
-            activePlayer.transform.Translate(moveVector * speed * Time.deltaTime);
+            gameObject.transform.Translate(moveVector * speed * Time.deltaTime);
         }
         
         //Dash input
@@ -121,12 +125,14 @@ public class PlayerController : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.Space))
         {
             Debug.Log("Flashback requested!");
-            lm.Flashback(FlashbackTime);
+            //lm.Flashback(FlashbackTime);
+            SendMessageUpwards("HandleFlashbackRequest");
         }
         else if(Input.GetKeyDown(KeyCode.Backspace))
         {
             Debug.Log("Collapse requested!");
-            lm.Collapse();
+            //lm.Collapse();
+            SendMessageUpwards("Collapse");
         }
     }
 
@@ -136,9 +142,9 @@ public class PlayerController : MonoBehaviour
         dashing = true;
 
         //Setting numbers for dash
-        dashStart.x = activePlayer.transform.position.x;
+        dashStart.x = gameObject.transform.position.x;
         dashEnd.x = dashStart.x + (moveVector.normalized.x * dashDis);
-        dashStart.y = activePlayer.transform.position.y;
+        dashStart.y = gameObject.transform.position.y;
         dashEnd.y = dashStart.y + (moveVector.normalized.y * dashDis);
         dashTimer = 0;
 
@@ -153,12 +159,12 @@ public class PlayerController : MonoBehaviour
             dashY = Mathf.Lerp(dashStart.y, dashEnd.y, dashTimer/dashTime);
             dashTimer += Time.deltaTime;
 
-            activePlayer.transform.position = new Vector3(dashX, dashY, 0);
+            gameObject.transform.position = new Vector3(dashX, dashY, 0);
 
             //Update dash trail
-            Vector3 halfway = (dashStart + activePlayer.transform.position) / 2;
+            Vector3 halfway = (dashStart + gameObject.transform.position) / 2;
             dashTrail.transform.position = halfway;
-            Vector3 difference = activePlayer.transform.position - dashStart;
+            Vector3 difference = gameObject.transform.position - dashStart;
             float distanceTraveled = Mathf.Abs(difference.magnitude);
             dashTrail.transform.localScale = new Vector3(distanceTraveled, 0.25f, 0);
         }
@@ -174,7 +180,7 @@ public class PlayerController : MonoBehaviour
 
     void InstantiateDashTrail ()
     {
-        dashTrail = Instantiate(dashTrailPrefab, activePlayer.transform.position, Quaternion.identity);
+        dashTrail = Instantiate(dashTrailPrefab, gameObject.transform.position, Quaternion.identity);
 
         Vector3 rot = new Vector3();
         if (xVelocity == 1 && yVelocity == 1)           {rot.z = 45;}
@@ -187,5 +193,5 @@ public class PlayerController : MonoBehaviour
         dashTrail.transform.Rotate(rot);
     }
 
-    public void ChangeActivePlayer (GameObject newActivePlayer) => activePlayer = newActivePlayer;
+    //public void ChangeActivePlayer (GameObject newActivePlayer) => gameObject = newActivePlayer;
 }
