@@ -28,14 +28,15 @@ public class PlayerController : MonoBehaviour
     //Dash
     bool dashing = false;
     float dashTimer;
-    float dashStartX;
-    float dashStartY;
+    Vector3 dashStart;
     float dashX;
     float dashY;
     Vector3 dashEnd;
     [SerializeField] float dashDis;
     [SerializeField] float dashTime;
-    [SerializeField] GameObject attackZone;
+    [SerializeField] GameObject dashTrailPrefab;
+    GameObject dashTrail;
+
 
     void Start() {
         lm = transform.parent.GetComponent<LevelManager>();
@@ -111,7 +112,7 @@ public class PlayerController : MonoBehaviour
         }
         
         //Dash input
-        if (Input.GetKeyDown(KeyCode.D)) { DashInitiated(); }
+        if (Input.GetKeyDown(KeyCode.D) && moveVector.magnitude != 0) { DashInitiated(); }
 
         //Dashing
         if (dashing) { Dashing(); }
@@ -135,50 +136,52 @@ public class PlayerController : MonoBehaviour
         dashing = true;
 
         //Setting numbers for dash
-        dashStartX = activePlayer.transform.position.x;
-        dashEnd.x = dashStartX + (moveVector.normalized.x * dashDis);
-        dashStartY = activePlayer.transform.position.y;
-        dashEnd.y = dashStartY + (moveVector.normalized.y * dashDis);
+        dashStart.x = activePlayer.transform.position.x;
+        dashEnd.x = dashStart.x + (moveVector.normalized.x * dashDis);
+        dashStart.y = activePlayer.transform.position.y;
+        dashEnd.y = dashStart.y + (moveVector.normalized.y * dashDis);
         dashTimer = 0;
+
+        InstantiateDashTrail();
     }
 
     void Dashing ()
     {
         if (dashTimer < dashTime)
         {
-            dashX = Mathf.Lerp(dashStartX, dashEnd.x, dashTimer/dashTime);
-            dashY = Mathf.Lerp(dashStartY, dashEnd.y, dashTimer/dashTime);
+            dashX = Mathf.Lerp(dashStart.x, dashEnd.x, dashTimer/dashTime);
+            dashY = Mathf.Lerp(dashStart.y, dashEnd.y, dashTimer/dashTime);
             dashTimer += Time.deltaTime;
 
             activePlayer.transform.position = new Vector3(dashX, dashY, 0);
+
+            //Update dash trail
+            Vector3 halfway = (dashStart + activePlayer.transform.position) / 2;
+            dashTrail.transform.position = halfway;
+            Vector3 difference = activePlayer.transform.position - dashStart;
+            float distanceTraveled = Mathf.Abs(difference.magnitude);
+            dashTrail.transform.localScale = new Vector3(distanceTraveled, 0.25f, 0);
         }
         else 
         {
             dashing = false;
-            Attack();
             moving = true;
         }
     }
 
-    void Attack ()
+    void InstantiateDashTrail ()
     {
-        if (moveVector.magnitude != 0)
-        {
-            Vector3 dashStart = new Vector3 (dashStartX, dashStartY, 0);
-            Vector3 zoneSpawnPos = (dashStart + dashEnd) / 2;
+        dashTrail = Instantiate(dashTrailPrefab, activePlayer.transform.position, Quaternion.identity);
 
-            Vector3 rot = new Vector3();
-            if (xVelocity == 1 && yVelocity == 1)           {rot.z = 45;}
-            else if (xVelocity == -1 && yVelocity == 1)     {rot.z = 135;}
-            else if (xVelocity == -1 && yVelocity == -1)    {rot.z = 225;}
-            else if (xVelocity == 1 && yVelocity == -1)     {rot.z = 315;}
-            else if (yVelocity == 1)                        {rot.z = 90;}
-            else if (yVelocity == -1)                       {rot.z = 270;}
+        Vector3 rot = new Vector3();
+        if (xVelocity == 1 && yVelocity == 1)           {rot.z = 45;}
+        else if (xVelocity == -1 && yVelocity == 1)     {rot.z = 135;}
+        else if (xVelocity == -1 && yVelocity == -1)    {rot.z = 225;}
+        else if (xVelocity == 1 && yVelocity == -1)     {rot.z = 315;}
+        else if (yVelocity == 1)                        {rot.z = 90;}
+        else if (yVelocity == -1)                       {rot.z = 270;}
 
-
-            GameObject z = Instantiate(attackZone, zoneSpawnPos, Quaternion.identity);
-            z.transform.Rotate(rot);
-        }
+        dashTrail.transform.Rotate(rot);
     }
 
     public void ChangeActivePlayer (GameObject newActivePlayer) => activePlayer = newActivePlayer;
