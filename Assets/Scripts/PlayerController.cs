@@ -58,35 +58,38 @@ public class PlayerController : MonoBehaviour
             if ((upInput && downInput) || (!upInput && !downInput))       {yVelocity = 0;}
             //Create vector and normalize
             velocityVector = new Vector3(xVelocity, yVelocity, 0).normalized;
-
+            
             //Adjust velocity x
             if (moveVector.x < velocityVector.x) 
             {
-                moveVector.x += acceleration;
+                moveVector.x += acceleration * Time.deltaTime;
                 if (moveVector.x > 1) {moveVector.x = 1;}
             }
-            if (moveVector.x > velocityVector.x)
+            else if (moveVector.x > velocityVector.x)
             {
-                moveVector.x -= acceleration;
+                moveVector.x -= acceleration * Time.deltaTime;
                 if (moveVector.x < -1) {moveVector.x = -1;}
             }
 
             //Adjust velocity y
             if (moveVector.y < velocityVector.y) 
             {
-                moveVector.y += acceleration;
+                moveVector.y += acceleration * Time.deltaTime;
                 if (moveVector.y > 1) {moveVector.y = 1;}
             }
-            if (moveVector.y > velocityVector.y)
+            else if (moveVector.y > velocityVector.y)
             {
-                moveVector.y -= acceleration;
+                moveVector.y -= acceleration * Time.deltaTime;
                 if (moveVector.y < -1) {moveVector.y = -1;}
             }
 
-            //Round near zero
-            if (Mathf.Abs(moveVector.x) < acceleration) {moveVector.x = 0;}
-            if (Mathf.Abs(moveVector.y) < acceleration) {moveVector.y = 0;}
-
+            //Round near zero (only do this is no key pressed?)
+            if (!rightInput && !leftInput && !upInput && !downInput)
+            {
+                if (Mathf.Abs(moveVector.x) < 0.2f) {moveVector.x = 0;}
+                if (Mathf.Abs(moveVector.y) < 0.2f) {moveVector.y = 0;}
+            }
+            
             //Move active player
             activePlayer.transform.Translate(moveVector * speed * Time.deltaTime);
         }

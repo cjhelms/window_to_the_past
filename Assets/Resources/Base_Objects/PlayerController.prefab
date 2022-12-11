@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   activePlayer: {fileID: 0}
-  acceleration: 0.01
+  acceleration: 5
   speed: 3
   dashDis: 2
   dashTime: 0.15
