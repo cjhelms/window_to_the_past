@@ -98,7 +98,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MaxHistory: 2000
-  RewindSpeedupFactor: 5
+  FlashbackSpeedup: 5
   AttackDistance: 1
   ChaseSpeed: 1
   TelegraphCycleDuration: 0.2

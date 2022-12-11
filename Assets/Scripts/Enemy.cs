@@ -18,6 +18,7 @@ public class Enemy : MonoBehaviour
 
     // Parameters set in Unity editor
     [SerializeField] int MaxHistory;
+    [SerializeField] int FlashbackSpeedup;
     [SerializeField] float AttackDistance;
     [SerializeField] float ChaseSpeed;
     [SerializeField] float TelegraphCycleDuration;
@@ -55,6 +56,7 @@ public class Enemy : MonoBehaviour
     Color[] spriteColorHistory; 
     int historySz;
     int historyNdx;
+    int historyDecimator;
 
     public void SetTarget(GameObject player)
     {
@@ -73,6 +75,7 @@ public class Enemy : MonoBehaviour
         state = State.Chase;
         positionHistory = new Vector3[MaxHistory];
         spriteColorHistory = new Color[MaxHistory];
+        historyDecimator = 0;
     }
 
     void Update()
@@ -83,9 +86,14 @@ public class Enemy : MonoBehaviour
             return;
         }
 
-        if(state != State.Rewind) {
+        if(state != State.Rewind && historyDecimator > FlashbackSpeedup) {
             // Record history so enemy can be rewound during flashback
             RecordHistory();
+            historyDecimator = 0;
+        }
+        else
+        {
+            historyDecimator++;
         }
 
         // State machine
