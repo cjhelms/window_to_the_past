@@ -149,6 +149,9 @@ public class PlayerController : MonoBehaviour
 
         InstantiateDashTrail();
 
+        //Play audio
+        GameObject.FindObjectOfType<AudioManager>().DashSound();
+
         //dashing = true;
         state = State.Dashing;
     }
